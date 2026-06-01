@@ -19,7 +19,7 @@ STREAM_TYPES = {
 class TSParser:
     def __init__(self, file_path):
         self.file_path = file_path
-        self.file_size = os.path.getsize(file_path) if os.path.exists(file_path) else 0
+        self.file_size = os.path.getsize(file_path) if (file_path and os.path.exists(file_path)) else 0
         self.total_pkts = self.file_size // 188
         
         # 분석 상태 데이터
@@ -63,7 +63,7 @@ class TSParser:
 
     def quick_scan(self, limit=20000):
         """초기 구조 파악을 위해 앞부분만 빠르게 스캔 (Blocking)"""
-        if not os.path.exists(self.file_path): return
+        if not self.file_path or not os.path.exists(self.file_path): return
         
         with open(self.file_path, "rb") as f:
             self.last_log = "Quick Scanning PSI..."
@@ -85,7 +85,7 @@ class TSParser:
 
     def read_packet_at(self, index):
         """특정 인덱스의 패킷(188 bytes)을 읽어서 반환 (Seek 기능용)"""
-        if not os.path.exists(self.file_path): return None
+        if not self.file_path or not os.path.exists(self.file_path): return None
         try:
             with open(self.file_path, "rb") as f:
                 f.seek(index * 188)
@@ -183,7 +183,7 @@ class TSParser:
 
     def _parsing_loop(self):
         """백그라운드 파싱 루프: 파일 전체를 스캔하며 구조 파악"""
-        if not os.path.exists(self.file_path):
+        if not self.file_path or not os.path.exists(self.file_path):
             self.last_log = "File not found."
             self.running = False
             return
